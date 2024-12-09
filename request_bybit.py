@@ -24,7 +24,7 @@ def get_bybit_linear_tickers_usdt():
         return []
 
 
-def get_bybit_last_kline_data(symbol, interval, limit=51):
+def get_bybit_last_kline_data(symbol, interval, limit):
     """
     Получает последние данные свечей (kline) для указанного символа и интервала от API Bybit.
 
@@ -48,7 +48,7 @@ def get_bybit_last_kline_data(symbol, interval, limit=51):
         response = requests.get(url, params=params)
         response.raise_for_status()  # Проверяем, успешный ли был запрос
         data = response.json()
-        return data["result"]["list"]
+        return data["result"]["list"][1:]
     except requests.exceptions.RequestException as e:
         print(f"Error: {e}")
         return []
