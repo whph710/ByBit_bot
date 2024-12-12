@@ -25,8 +25,3 @@ def gemini_1_5_flash(text):
     except Exception as e:
         return f"Ошибка при генерации контента: {e}"
 
-
-# Пример использования функции
-text = "2"
-result = gemini_1_5_flash(text)
-print(result)
