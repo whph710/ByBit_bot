@@ -48,8 +48,7 @@ def get_bybit_last_kline_data(symbol, interval, limit):
         response = requests.get(url, params=params)
         response.raise_for_status()  # Проверяем, успешный ли был запрос
         data = response.json()
-        return data["result"]["list"][2:]
+        return data["result"]["list"]  #[2:]
     except requests.exceptions.RequestException as e:
         print(f"Error: {e}")
         return []
-
