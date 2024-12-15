@@ -4,9 +4,9 @@ from request_bybit import get_bybit_last_kline_data
 def analyze_timeframes(ticker):
     timeframes = [5, 15, 60]
     timeframe_candles = {
-        5: 75,  # 5-минутный таймфрейм (M5)
-        15: 42,  # 15-минутный таймфрейм (M15)
-        60: 42  # 60-минутный таймфрейм (H1)
+        5: 200,  # 5-минутный таймфрейм (M5)
+        15: 50,  # 15-минутный таймфрейм (M15)
+        60: 50  # 60-минутный таймфрейм (H1)
     }
 
     results = {}
