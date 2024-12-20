@@ -17,7 +17,6 @@ def get_bybit_linear_tickers_usdt():
         tickers_all = [pair["symbol"] for pair in data["result"]["list"]]
         tickers = [ticker for ticker in tickers_all if "USDT" in ticker]  # Выбираем только USDT
         tickers = [ticker for ticker in tickers if "0" not in ticker]  # Список, исключив элементы, содержащие "0"
-        print('')
         return tickers
     except requests.exceptions.RequestException as e:
         print(f"Error: {e}")

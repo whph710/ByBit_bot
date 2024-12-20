@@ -1,118 +1,6 @@
 import google.generativeai as genai
 from config import API_KEY
-import json
 from datetime import datetime
-
-def gpt_analyze(data):
-    genai.configure(api_key=API_KEY)
-
-    # Create the model
-    generation_config = {
-        "temperature": 1,
-        "top_p": 0.95,
-        "top_k": 40,
-        "max_output_tokens": 8192,
-        "response_mime_type": "text/plain",
-    }
-
-    model = genai.GenerativeModel(
-        model_name="gemini-2.0-flash-exp",
-        generation_config=generation_config,
-    )
-
-    with open(r'C:\Users\maxim\Documents\PycharmProjects\ByBit_bot\prompt.txt', 'r', encoding='utf-8') as file:
-        prompt = file.read()
-
-
-    # Generate content
-    response = model.generate_content([
-        f"{prompt}",
-        "input: [['1734607800000', '1.3149', '1.3151', '1.3133', '1.3133', '5550.9', '7294.33406'], ['1734607500000', '1.319', '1.32', '1.3149', '1.3149', '68239.8', '89926.76906'], ['1734607200000', '1.315', '1.3206', '1.3143', '1.319', '88051.2', '116055.67918'], ['1734606900000', '1.306', '1.3169', '1.3055', '1.315', '77597.5', '101715.94661'], ['1734606600000', '1.314', '1.3175', '1.313', '1.3155', '65432.1', '86037.48321'], ['1734606300000', '1.3155', '1.318', '1.314', '1.316', '54321.0', '71537.48321'], ['1734606000000', '1.316', '1.3185', '1.3145', '1.317', '43210.9', '57037.48321'], ['1734605700000', '1.317', '1.319', '1.315', '1.3175', '32109.8', '42537.48321'], ['1734605400000', '1.3175', '1.3195', '1.316', '1.318', '21098.7', '27937.48321'], ['1734605100000', '1.318', '1.32', '1.3165', '1.3185', '10987.6', '14437.48321']...['1734593400000', '1.3375', '1.3395', '1.336', '1.338', '0.7', '107.48321']]",
-        "output: {\n  \"analysis\": {\n    \"moving_averages\": {\n      \"short_ma\": 1.315,\n      \"long_ma\": 1.314,\n      \"signal\": \"long\"\n    },\n    \"rsi\": {\n      \"value\": 50,\n      \"signal\": \"neutral\"\n    },\n    \"adx\": {\n      \"value\": 25,\n      \"signal\": \"strong_trend\"\n    },\n    \"stochastic_oscillator\": {\n      \"k_line\": 20,\n      \"d_line\": 22,\n      \"signal\": \"long\"\n    },\n    \"trend_lines\": {\n      \"support_level\": 1.310,\n      \"resistance_level\": 1.320,\n      \"signal\": \"strong_movement\"\n    }\n  },\n  \"trade_recommendation\": {\n    \"entry_point\": 1.314,\n    \"stop_loss\": 1.309,\n    \"take_profit\": 1.355,\n    \"direction\": \"long\"\n  }\n}",
-        "input: \"input\": [\n  ['1734607800000', '340.13', '340.57', '339.97', '340.0', '5550.9', '1887310.9703'],\n  ['1734607500000', '341.9', '342.0', '340.57', '340.57', '68239.8', '23309731.06906'],\n  ['1734607200000', '340.5', '342.06', '340.43', '341.9', '88051.2', '29969839.1818'],\n  ['1734606900000', '340.6', '341.69', '340.55', '341.5', '77597.5', '26454531.661'],\n  ['1734606600000', '341.3', '341.6', '340.6', '341.3', '65432.1', '22332995.33406'],\n  ['1734606300000', '341.9', '342.0', '341.3', '341.9', '78901.2', '26930747.67918'],\n  ['1734606000000', '340.5', '341.5', '340.43', '340.5', '88051.2', '29969839.1818'],\n  ['1734605700000', '341.6', '341.79', '341.55', '341.6', '77597.5', '26454531.661'],\n  ['1734605400000', '340.13', '340.57', '339.97', '340.0', '5550.9', '1887310.9703'],\n  ['1734605100000', '341.9', '342.0', '340.57', '340.57', '68239.8', '23309731.06906']...['1734593700000', '341.6', '341.79', '341.55', '341.6', '77597.5', '26454531.661']\n]",
-        "output: {\n  \"analysis\": {\n    \"moving_averages\": {\n      \"short_ma\": 342.13,\n      \"long_ma\": 340.57,\n      \"signal\": \"short\"\n    },\n    \"rsi\": {\n      \"value\": 50,\n      \"signal\": \"neutral\"\n    },\n    \"adx\": {\n      \"value\": 25,\n      \"signal\": \"strong_trend\"\n    },\n    \"stochastic_oscillator\": {\n      \"k_line\": 80,\n      \"d_line\": 78,\n      \"signal\": \"short\"\n    },\n    \"trend_lines\": {\n      \"support_level\": 342.0,\n      \"resistance_level\": 340.0,\n      \"signal\": \"strong_movement\"\n    }\n  },\n  \"trade_recommendation\": {\n    \"entry_point\": 340.57,\n    \"stop_loss\": 341.77,\n    \"take_profit\": 335.17,\n    \"direction\": \"short\"\n  }\n}",
-        "input: [\n  ['1734607800000', '1.3149', '1.3151', '1.3133', '1.3133', '5550.9', '7294.33406'],\n  ['1734607500000', '1.319', '1.32', '1.3149', '1.3149', '68239.8', '89926.76906'],\n  ['1734607200000', '1.315', '1.3206', '1.3143', '1.319', '88051.2', '116055.67918'],\n  ['1734606900000', '1.306', '1.3169', '1.3055', '1.315', '77597.5', '101715.94661'],\n  ['1734606600000', '1.314', '1.3175', '1.313', '1.3155', '65432.1', '86037.48321'],\n  ['1734606300000', '1.3155', '1.318', '1.314', '1.316', '54321.0', '71537.48321'],\n  ['1734606000000', '1.316', '1.3185', '1.3145', '1.317', '43210.9', '57037.48321'],\n  ['1734605700000', '1.317', '1.319', '1.315', '1.3175', '32109.8', '42537.48321'],\n  ['1734605400000', '1.3175', '1.3195', '1.316', '1.318', '21098.7', '27937.48321'],\n  ['1734605100000', '1.318', '1.32', '1.3165', '1.3185', '10987.6', '14437.48321'],\n  ['1734604800000', '1.3185', '1.3205', '1.317', '1.319', '9876.5', '12937.48321'],\n  ['1734604500000', '1.319', '1.321', '1.3175', '1.3195', '8765.4', '11537.48321'],\n  ['1734604200000', '1.3195', '1.3215', '1.318', '1.32', '7654.3', '10037.48321'],\n  ['1734603900000', '1.32', '1.322', '1.3185', '1.3205', '6543.2', '8637.48321'],\n  ['1734603600000', '1.3205', '1.3225', '1.319', '1.321', '5432.1', '7137.48321'],\n  ['1734603300000', '1.321', '1.323', '1.3195', '1.3215', '4321.0', '5737.48321'],\n  ['1734603000000', '1.3215', '1.3235', '1.32', '1.322', '3210.9', '4237.48321'],\n  ['1734602700000', '1.322', '1.324', '1.3205', '1.3225', '2109.8', '2737.48321'],\n  ['1734602400000', '1.3225', '1.3245', '1.321', '1.323', '1098.7', '1437.48321'],\n  ['1734602100000', '1.323', '1.325', '1.3215', '1.3235', '987.6', '1237.48321'],\n  ['1734601800000', '1.3235', '1.3255', '1.322', '1.324', '876.5', '1137.48321'],\n  ['1734601500000', '1.324', '1.326', '1.3225', '1.3245', '765.4', '1037.48321'],\n  ['1734601200000', '1.3245', '1.3265', '1.323', '1.325', '654.3', '887.48321'],\n  ['1734600900000', '1.325', '1.327', '1.3235', '1.3255', '543.2', '737.48321'],\n  ['1734600600000', '1.3255', '1.3275', '1.324', '1.326', '432.1', '587.48321'],\n  ['1734600300000', '1.326', '1.328', '1.3245', '1.3265', '321.0', '437.48321'],\n  ['1734600000000', '1.3265', '1.3285', '1.325', '1.327', '210.9', '287.48321'],\n  ['1734599700000', '1.327', '1.329', '1.3255', '1.3275', '109.8', '157.48321'],\n  ['1734599400000', '1.3275', '1.3295', '1.326', '1.328', '98.7', '137.48321'],\n  ['1734599100000', '1.328', '1.33', '1.3265', '1.3285', '87.6', '117.48321'],\n  ['1734598800000', '1.3285', '1.3305', '1.327', '1.329', '76.5', '107.48321'],\n  ['1734598500000', '1.329', '1.331', '1.3275', '1.3295', '65.4', '887.48321'],\n  ['1734598200000', '1.3295', '1.3315', '1.328', '1.33', '54.3', '737.48321'],\n  ['1734597900000', '1.33', '1.332', '1.3285', '1.3305', '43.2', '587.48321'],\n  ['1734597600000', '1.3305', '1.3325', '1.329', '1.331', '32.1', '437.48321'],\n  ['1734597300000', '1.331', '1.333', '1.3295', '1.3315', '21.0', '287.48321'],\n  ['1734597000000', '1.3315', '1.3335', '1.33', '1.332', '10.9', '157.48321'],\n  ['1734596700000', '1.332', '1.334', '1.3305', '1.3325', '9.8', '137.48321'],\n  ['1734596400000', '1.3325', '1.3345', '1.331', '1.333', '8.7', '117.48321'],\n  ['1734596100000', '1.333', '1.335', '1.3315', '1.3335', '7.6', '107.48321'],\n  ['1734595800000', '1.3335', '1.3355', '1.332', '1.334', '6.5', '887.48321'],\n  ['1734595500000', '1.334', '1.336', '1.3325', '1.3345', '5.4', '737.48321'],\n  ['1734595200000', '1.3345', '1.3365', '1.333', '1.335', '4.3', '587.48321'],\n  ['1734594900000', '1.335', '1.337', '1.3335', '1.3355', '3.2', '437.48321'],\n  ['1734594600000', '1.3355', '1.3375', '1.334', '1.336', '2.1', '287.48321'],\n  ['1734594300000', '1.336', '1.338', '1.3345', '1.3365', '1.0', '157.48321'],\n  ['1734594000000', '1.3365', '1.3385', '1.335', '1.337', '0.9', '137.48321'],\n  ['1734593700000', '1.337', '1.339', '1.3355', '1.3375', '0.8', '117.48321'],\n  ['1734593400000', '1.3375', '1.3395', '1.336', '1.338', '0.7', '107.48321']\n]\n```",
-        "output: {\n  \"analysis\": {NULL}\n}",
-        f"input: {data},"
-        "output: ",
-    ])
-    # Убираем лишние символы в одной строке
-    cleaned_text = response.text.replace("\n", "").replace("\t", "").replace("`", "").replace("json", "").replace("  ", " ")
-
-    # Преобразуем строку в словарь
-    data1 = json.loads(cleaned_text)
-
-    # Добавляем сигналы в словарь
-
-    check_gpt = generate_signal_score(data1)
-    data = add_strength_to_trade_recommendation(data1, check_gpt)
-
-    return data
-
-
-def get_all_signals(data):
-    signals = []
-
-    # Извлечение сигналов из анализа
-    analysis = data.get('analysis', {})
-    for key, value in analysis.items():
-        if 'signal' in value:
-            signals.append(value['signal'])
-
-    # Извлечение сигналов из торговых рекомендаций
-    trade_recommendation = data.get('trade_recommendation', {})
-    if 'direction' in trade_recommendation:
-        signals.append(trade_recommendation['direction'])
-
-    return signals
-
-
-def generate_signal_score(input_list):
-    # Настройка API ключа
-    genai.configure(api_key=API_KEY)
-
-    # Создание конфигурации генерации
-    generation_config = {
-        "temperature": 0,
-        "top_p": 0,
-        "top_k": 40,
-        "max_output_tokens": 8192,
-        "response_mime_type": "text/plain",
-    }
-
-    # Создание модели
-    model = genai.GenerativeModel(
-        model_name="gemini-2.0-flash-exp",
-        generation_config=generation_config,
-    )
-
-    # Формирование входных данных для модели
-    prompt = [
-        "Вам будет предоставлен список сигналов, посмотри предоставленный список сигналов.Общий сигнал: Определите один общий сигнал на основе анализа.Оцените общий сигнал по шкале от 0 до 10. и дай только эту цифру",
-        "input: ['long', 'neutral', 'strong_trend', 'long', 'strong_movement', 'long']",
-        "output: 8",
-        "input: ['short', 'neutral', 'weak_trend', 'short', 'weak_movement', 'short']",
-        "output: 3",
-        f"input: {input_list}",
-        "output: ",
-    ]
-
-    # Генерация ответа
-    response = model.generate_content(prompt)
-
-    # Возврат текста ответа
-    return response.text.replace("\n", "")
-
-
-def add_strength_to_trade_recommendation(data, strength_value):
-    # Проверяем, существует ли ключ 'trade_recommendation' в данных
-    if 'trade_recommendation' in data:
-        # Добавляем пару 'strength' и значение strength_value в 'trade_recommendation'
-        data['trade_recommendation']['strength'] = strength_value
-    else:
-        # Если ключа 'trade_recommendation' нет, создаем его и добавляем пару 'strength'
-        data['trade_recommendation'] = {'strength': strength_value}
-    return data
 
 
 def round_time_down():
@@ -126,3 +14,82 @@ def round_time_down():
     rounded_time = datetime.now().replace(minute=rounded_minutes, second=0, microsecond=0)
 
     return rounded_time.strftime("%H:%M")
+
+
+def trend_ai(data):
+    # Настройка API
+    genai.configure(api_key=API_KEY)
+
+    # Создание конфигурации генерации
+    generation_config = {
+        "temperature": 0,
+        "top_p": 0,
+        "top_k": 1,
+        "max_output_tokens": 500,
+        "response_schema": {
+            "type": "object",
+            "properties": {
+                "response": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                    },
+                },
+            },
+        },
+        "response_mime_type": "application/json",
+    }
+
+    # Создание модели
+    model = genai.GenerativeModel(
+        model_name="gemini-2.0-flash-exp",
+        generation_config=generation_config,
+    )
+
+    # Генерация контента
+    response = model.generate_content([
+        "Проведи данные через индикатор и используй все свои знания технического анализа(в том числе Фигуры технического анализа и Свечные паттерны) и скажи в каком направлени(up, down, 0) будет резкий скачок цены на следующих 5 свечах. Если не предвидится скачка то 0(если не предвидится движения от 2.5% тоже ставь 0).Ты можешь выбрать только один ответ из трех:\n//@version=4\nstudy(title=\"RSI iFish with Trend Lines\", shorttitle=\"RSI iFish\", overlay=false)\n\n// Входные параметры\nlength = input(14, title=\"RSI length\")\nlengthwma = input(7, title=\"Smoothing length\")\nprd = input(defval = 14, title=\"Pivot Point Period\", minval = 5, maxval = 50)\nPPnum = input(defval = 3, title=\"Number of Pivot Point to check\", minval = 2, maxval = 3)\n\n// Функция для расчета iFish\ncalc_ifish(series, lengthwma) =>\n    v1 = 0.1 * (series - 50)\n    v2 = wma(v1, lengthwma)\n    ifish = v2 * 2  // Линейная трансформация\n    ifish\n\n// Расчет RSI\nrsi_value = rsi(close, length)\n\n// Применение функции calc_ifish к RSI\nifish_value = calc_ifish(rsi_value, lengthwma)\n\n// Отображение значения iFish\nplot(ifish_value, color=color.white, title=\"RSI iFish\")\nhline(0, \"Zero Line\", color=#5e52ff, linestyle=hline.style_dotted)\n\n// Логика для трендовых линий\nfloat ph = na, float pl = na\nph := pivothigh(ifish_value, prd, prd)\npl := pivotlow(ifish_value, prd, prd)\n\ngetloc(bar_i)=>\n    _ret = bar_index + prd - bar_i\n\nt1pos = valuewhen(ph, bar_index, 0)\nt1val = nz(ifish_value[getloc(t1pos)])\nt2pos = valuewhen(ph, bar_index, 1)\nt2val = nz(ifish_value[getloc(t2pos)])\nt3pos = valuewhen(ph, bar_index, 2)\nt3val = nz(ifish_value[getloc(t3pos)])\n\nb1pos = valuewhen(pl, bar_index, 0)\nb1val = nz(ifish_value[getloc(b1pos)])\nb2pos = valuewhen(pl, bar_index, 1)\nb2val = nz(ifish_value[getloc(b2pos)])\nb3pos = valuewhen(pl, bar_index, 2)\nb3val = nz(ifish_value[getloc(b3pos)])\n\ngetloval(l1, l2)=>\n    _ret1 = l1 == 1 ? b1val : l1 == 2 ? b2val : l1 ==3 ? b3val : 0\n    _ret2 = l2 == 1 ? b1val : l2 == 2 ? b2val : l2 ==3 ? b3val : 0\n    [_ret1, _ret2]\n\ngetlopos(l1, l2)=>\n    _ret1 = l1 == 1 ? b1pos : l1 == 2 ? b2pos : l1 ==3 ? b3pos : 0\n    _ret2 = l2 == 1 ? b1pos : l2 == 2 ? b2pos : l2 ==3 ? b3pos : 0\n    [_ret1, _ret2]\n\ngethival(l1, l2)=>\n    _ret1 = l1 == 1 ? t1val : l1 == 2 ? t2val : l1 ==3 ? t3val : 0\n    _ret2 = l2 == 1 ? t1val : l2 == 2 ? t2val : l2 ==3 ? t3val : 0\n    [_ret1, _ret2]\n\ngethipos(l1, l2)=>\n    _ret1 = l1 == 1 ? t1pos : l1 == 2 ? t2pos : l1 ==3 ? t3pos :  0\n    _ret2 = l2 == 1 ? t1pos : l2 == 2 ? t2pos : l2 ==3 ? t3pos :  0\n    [_ret1, _ret2]\n\n// line definitions\nvar line l1 = na, var line l2 = na, var line l3 = na\nvar line t1 = na, var line t2 = na, var line t3 = na\n\ncountlinelo = 0\ncountlinehi = 0\nfor p1 = 1 to PPnum - 1\n    uv1 = 0.0\n    uv2 = 0.0\n    up1 = 0\n    up2 = 0\n    for p2 = PPnum to p1 + 1\n        [val1, val2] = getloval(p1, p2)\n        [pos1, pos2] = getlopos(p1, p2)\n        if val1 > val2\n            diff = (val1 - val2) / (pos1 - pos2)\n            hline = val2 + diff\n            lloc = bar_index\n            lval = ifish_value\n            valid = true\n            for x = pos2 + 1 - prd to bar_index\n                if nz(ifish_value[getloc(x + prd)]) < hline\n                    valid := false\n                lloc := x\n                lval := hline\n                hline := hline + diff\n\n            if valid\n                uv1 := hline\n                uv2 := val2\n                up1 := lloc\n                up2 := pos2\n                break\n    dv1 = 0.0\n    dv2 = 0.0\n    dp1 = 0\n    dp2 = 0\n    for p2 = PPnum to p1 + 1\n        [val1, val2] = gethival(p1, p2)\n        [pos1, pos2] = gethipos(p1, p2)\n        if val1 < val2\n            diff = (val2 - val1) / (pos1 - pos2)\n            hline = val2 - diff\n            lloc = bar_index\n            lval = ifish_value\n            valid = true\n            for x = pos2 + 1 - prd to bar_index\n                if nz(ifish_value[getloc(x + prd)]) > hline\n                    valid := false\n                    break\n                lloc := x\n                lval := hline\n                hline := hline - diff\n\n            if valid\n                dv1 := hline\n                dv2 := val2\n                dp1 := lloc\n                dp2 := pos2\n                break\n\n    if up1 != 0 and up2 != 0\n        countlinelo := countlinelo + 1\n        l1 := countlinelo == 1 ? line.new(up2 - prd, uv2, up1, uv1) : l1\n        l2 := countlinelo == 2 ? line.new(up2 - prd, uv2, up1, uv1) : l2\n        l3 := countlinelo == 3 ? line.new(up2 - prd, uv2, up1, uv1) : l3\n\n    if dp1 != 0 and dp2 != 0\n        countlinehi := countlinehi + 1\n        t1 := countlinehi == 1 ? line.new(dp2 - prd, dv2, dp1, dv1) : t1\n        t2 := countlinehi == 2 ? line.new(dp2 - prd, dv2, dp1, dv1) : t2\n        t3 := countlinehi == 3 ? line.new(dp2 - prd, dv2, dp1, dv1) : t3",
+        "input: ",
+        "output: 'up'",
+        "input: ",
+        "output: 'down'",
+        f"input: ",
+        "output: 0",
+        f"input: {data}",
+        "output: ",
+    ])
+    #print(data)
+
+    # Вывод результата
+    return response.text
+
+
+def ema_trend(data):
+    # Извлечение значений закрытия
+    closes = [float(row[4]) for row in data]
+
+    # Функция для вычисления EMA
+    def calculate_ema(prices, period):
+        multiplier = 2 / (period + 1)
+        ema = [sum(prices[:period]) / period]
+        for price in prices[period:]:
+            ema.append((price - ema[-1]) * multiplier + ema[-1])
+        return ema
+
+    # Вычисление EMA для периодов 20, 50 и 200
+    ema20 = calculate_ema(closes, 20)
+    ema50 = calculate_ema(closes, 50)
+    ema200 = calculate_ema(closes, 200)
+
+    # Функция для определения результата
+    def determine_result(ema20, ema50, ema200):
+        if ema20 > ema50 > ema200:
+            return 1
+        elif ema20 < ema50 < ema200:
+            return -1
+        else:
+            return 0
+    # Определение результата для последнего значения
+    result = determine_result(ema20[0], ema50[0], ema200[0])
+
+    return result
