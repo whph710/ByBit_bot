@@ -1,6 +1,5 @@
 import requests
 
-
 def get_bybit_linear_tickers_usdt():
     """
     Получает список тикеров линейных контрактов, номинированных в USDT, от API Bybit.
@@ -15,8 +14,7 @@ def get_bybit_linear_tickers_usdt():
         response.raise_for_status()  # Проверяем, успешный ли был запрос
         data = response.json()
         tickers_all = [pair["symbol"] for pair in data["result"]["list"]]
-        tickers = [ticker for ticker in tickers_all if "USDT" in ticker]  # Выбираем только USDT
-        tickers = [ticker for ticker in tickers if "0" not in ticker]  # Список, исключив элементы, содержащие "0"
+        tickers = [ticker for ticker in tickers_all if "USDT" in ticker and "0" not in ticker]
         return tickers
     except requests.exceptions.RequestException as e:
         print(f"Error: {e}")
@@ -40,7 +38,7 @@ def get_bybit_last_kline_data(symbol, interval=5, limit=50):
         "category": "linear",
         "symbol": symbol,
         "interval": str(interval),
-        "limit": limit  # Количество свечей, которое нужно получить
+        "limit": limit
     }
 
     try:
@@ -51,3 +49,5 @@ def get_bybit_last_kline_data(symbol, interval=5, limit=50):
     except requests.exceptions.RequestException as e:
         print(f"Error: {e}")
         return []
+
+

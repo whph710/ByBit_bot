@@ -1,22 +1,20 @@
 from request_bybit import get_bybit_linear_tickers_usdt, get_bybit_last_kline_data
-from func import trend_ai, round_time_down, ema_trend
+from func import trend_ai, round_time_down, ema_trend, generate_response
 
 
 def main():
     try:
-        # Достаем список тикеров
-        tickets = get_bybit_linear_tickers_usdt()
-        # Запускаем цикл для каждого тикера
-        for ticket in tickets[::5]:
-            # Достаем данные
-            data = get_bybit_last_kline_data(ticket, interval=5, limit=110)
-            trend_ema = ema_trend(data)
-            # Анализ
-            trend = trend_ai(data)
-            if "up" in trend and trend_ema == 1:
-                print(f"ticket: {ticket} | trend: UP | time: {round_time_down()}")
-            elif "down" in trend and trend_ema == -1:
-                print(f"ticket: {ticket} | trend: DOWN | time: {round_time_down()}")
+        for tiket in get_bybit_linear_tickers_usdt():
+            kline = get_bybit_last_kline_data(tiket, interval=5, limit=50)
+            dict_kline = trend_ai(kline)
+            dict_kline['trend'] = ema_trend(kline)
+            dict_kline['ticket'] = tiket
+            dict_kline['time'] = round_time_down()
+            dict_kline['kline'] = kline
+            recommendation = generate_response(dict_kline)
+            print(dict_kline)
+            print(recommendation)
+
 
     except Exception as e:
         print(e)
