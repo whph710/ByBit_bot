@@ -4,12 +4,12 @@ from datetime import datetime
 import json
 
 
-def round_time_down():
+def round_time_down(minut=5):
     # Извлекаем минуты
     minutes = datetime.now().minute
 
-    # Округляем минуты в меньшую сторону кратно 5
-    rounded_minutes = (minutes // 5) * 5
+    # Округляем минуты в меньшую сторону кратно
+    rounded_minutes = (minutes // minut) * minut
 
     # Формируем новое время
     rounded_time = datetime.now().replace(minute=rounded_minutes, second=0, microsecond=0)
@@ -49,22 +49,60 @@ def trend_ai(data2):
 
     # Генерация контента
     response = model.generate_content([
-        "Проведи данные через индикатор и используй все свои знания технического анализа(в том числе Фигуры "
-        "технического анализа и Свечные паттерны) и скажи в каком направлени(up, down, 0) будет резкий скачок цены на "
-        "следующих 5 свечах. Если не предвидится скачка то 0(если не предвидится движения от 2.5% тоже ставь 0).Ты "
-        "можешь выбрать только один ответ из трех:"
-        "а так же дать 3 числа которые будут означать первое число точку входа в позицию, второе число это тейкпрофит "
-        "третье число это стоплос"
-        "\n//@version=4\nstudy(title=\"RSI iFish with Trend Lines\", shorttitle=\"RSI iFish\", overlay=false)\n\n// Входные параметры\nlength = input(14, title=\"RSI length\")\nlengthwma = input(7, title=\"Smoothing length\")\nprd = input(defval = 14, title=\"Pivot Point Period\", minval = 5, maxval = 50)\nPPnum = input(defval = 3, title=\"Number of Pivot Point to check\", minval = 2, maxval = 3)\n\n// Функция для расчета iFish\ncalc_ifish(series, lengthwma) =>\n    v1 = 0.1 * (series - 50)\n    v2 = wma(v1, lengthwma)\n    ifish = v2 * 2  // Линейная трансформация\n    ifish\n\n// Расчет RSI\nrsi_value = rsi(close, length)\n\n// Применение функции calc_ifish к RSI\nifish_value = calc_ifish(rsi_value, lengthwma)\n\n// Отображение значения iFish\nplot(ifish_value, color=color.white, title=\"RSI iFish\")\nhline(0, \"Zero Line\", color=#5e52ff, linestyle=hline.style_dotted)\n\n// Логика для трендовых линий\nfloat ph = na, float pl = na\nph := pivothigh(ifish_value, prd, prd)\npl := pivotlow(ifish_value, prd, prd)\n\ngetloc(bar_i)=>\n    _ret = bar_index + prd - bar_i\n\nt1pos = valuewhen(ph, bar_index, 0)\nt1val = nz(ifish_value[getloc(t1pos)])\nt2pos = valuewhen(ph, bar_index, 1)\nt2val = nz(ifish_value[getloc(t2pos)])\nt3pos = valuewhen(ph, bar_index, 2)\nt3val = nz(ifish_value[getloc(t3pos)])\n\nb1pos = valuewhen(pl, bar_index, 0)\nb1val = nz(ifish_value[getloc(b1pos)])\nb2pos = valuewhen(pl, bar_index, 1)\nb2val = nz(ifish_value[getloc(b2pos)])\nb3pos = valuewhen(pl, bar_index, 2)\nb3val = nz(ifish_value[getloc(b3pos)])\n\ngetloval(l1, l2)=>\n    _ret1 = l1 == 1 ? b1val : l1 == 2 ? b2val : l1 ==3 ? b3val : 0\n    _ret2 = l2 == 1 ? b1val : l2 == 2 ? b2val : l2 ==3 ? b3val : 0\n    [_ret1, _ret2]\n\ngetlopos(l1, l2)=>\n    _ret1 = l1 == 1 ? b1pos : l1 == 2 ? b2pos : l1 ==3 ? b3pos : 0\n    _ret2 = l2 == 1 ? b1pos : l2 == 2 ? b2pos : l2 ==3 ? b3pos : 0\n    [_ret1, _ret2]\n\ngethival(l1, l2)=>\n    _ret1 = l1 == 1 ? t1val : l1 == 2 ? t2val : l1 ==3 ? t3val : 0\n    _ret2 = l2 == 1 ? t1val : l2 == 2 ? t2val : l2 ==3 ? t3val : 0\n    [_ret1, _ret2]\n\ngethipos(l1, l2)=>\n    _ret1 = l1 == 1 ? t1pos : l1 == 2 ? t2pos : l1 ==3 ? t3pos :  0\n    _ret2 = l2 == 1 ? t1pos : l2 == 2 ? t2pos : l2 ==3 ? t3pos :  0\n    [_ret1, _ret2]\n\n// line definitions\nvar line l1 = na, var line l2 = na, var line l3 = na\nvar line t1 = na, var line t2 = na, var line t3 = na\n\ncountlinelo = 0\ncountlinehi = 0\nfor p1 = 1 to PPnum - 1\n    uv1 = 0.0\n    uv2 = 0.0\n    up1 = 0\n    up2 = 0\n    for p2 = PPnum to p1 + 1\n        [val1, val2] = getloval(p1, p2)\n        [pos1, pos2] = getlopos(p1, p2)\n        if val1 > val2\n            diff = (val1 - val2) / (pos1 - pos2)\n            hline = val2 + diff\n            lloc = bar_index\n            lval = ifish_value\n            valid = true\n            for x = pos2 + 1 - prd to bar_index\n                if nz(ifish_value[getloc(x + prd)]) < hline\n                    valid := false\n                lloc := x\n                lval := hline\n                hline := hline + diff\n\n            if valid\n                uv1 := hline\n                uv2 := val2\n                up1 := lloc\n                up2 := pos2\n                break\n    dv1 = 0.0\n    dv2 = 0.0\n    dp1 = 0\n    dp2 = 0\n    for p2 = PPnum to p1 + 1\n        [val1, val2] = gethival(p1, p2)\n        [pos1, pos2] = gethipos(p1, p2)\n        if val1 < val2\n            diff = (val2 - val1) / (pos1 - pos2)\n            hline = val2 - diff\n            lloc = bar_index\n            lval = ifish_value\n            valid = true\n            for x = pos2 + 1 - prd to bar_index\n                if nz(ifish_value[getloc(x + prd)]) > hline\n                    valid := false\n                    break\n                lloc := x\n                lval := hline\n                hline := hline - diff\n\n            if valid\n                dv1 := hline\n                dv2 := val2\n                dp1 := lloc\n                dp2 := pos2\n                break\n\n    if up1 != 0 and up2 != 0\n        countlinelo := countlinelo + 1\n        l1 := countlinelo == 1 ? line.new(up2 - prd, uv2, up1, uv1) : l1\n        l2 := countlinelo == 2 ? line.new(up2 - prd, uv2, up1, uv1) : l2\n        l3 := countlinelo == 3 ? line.new(up2 - prd, uv2, up1, uv1) : l3\n\n    if dp1 != 0 and dp2 != 0\n        countlinehi := countlinehi + 1\n        t1 := countlinehi == 1 ? line.new(dp2 - prd, dv2, dp1, dv1) : t1\n        t2 := countlinehi == 2 ? line.new(dp2 - prd, dv2, dp1, dv1) : t2\n        t3 := countlinehi == 3 ? line.new(dp2 - prd, dv2, dp1, dv1) : t3",
-        f"input: ",
-        "output: 'up', 100, 105, 98",
-        f"input: ",
-        "output: 'down', 100, 105, 98",
+        """
+        ### Введение и контекст
+        **Цель промпта**: Обеспечить точный и надежный анализ данных для прогнозирования резких движений цены на 
+        фондовом рынке, используя методы технического анализа.
+        **Контекст**: Использование технического анализа для принятия решений на финансовых рынках, включая анализ 
+        графиков, свечных паттернов и других индикаторов.
+
+        ### Описание задачи
+        **Описание задачи**: Провести анализ данных через индикатор и использовать все доступные знания технического
+        анализа, включая фигуры технического анализа и свечные паттерны, для прогнозирования направления резкого 
+        движения цены на следующих пяти свечах. Если резкого движения не предвидится, указать это. Также предоставить
+        три числа: точку входа в позицию, тейк-профит и стоп-лосс.
+        **Критерии успеха**: Точность прогноза направления движения цены, обоснованность выбора точки входа,
+        тейк-профита и стоп-лосса.
+        
+        ### Входные данные
+        **Типы данных**: Исторические данные цен, индикаторы технического анализа, свечные паттерны.
+        **Формат данных**: Графики и таблицы с историческими данными цен.
+        **Примеры данных**: График цен акции компании XYZ за последний месяц.
+        
+        ### Ограничения и требования
+        **Ограничения**: Ограничения по времени анализа и объему данных.
+        **Требования**: Высокая точность прогноза, обоснованность выбора точки входа, тейк-профита и стоп-лосса.
+        
+        ### Методы и подходы
+        **Методы**: Использование индикаторов технического анализа, анализ свечных паттернов и фигур технического 
+        анализа.
+        **Подходы**: Анализ исторических данных, поиск паттернов и индикаторов, прогнозирование будущих движений цены.
+        
+        ### Выходные данные
+        **Формат выходных данных**: Направление движения цены (1 для роста, -1 для падения, 0 для отсутствия движения), 
+        три числа: точка входа, тейк-профит, стоп-лосс.
+        **Примеры выходных данных**: [ 1, 100, 110, 95]
+        
+        ### Оценка и валидация
+        **Метрики оценки**: Точность прогноза, обоснованность выбора точки входа, тейк-профита и стоп-лосса.
+        **Методы валидации**: Сравнение прогнозов с реальными данными, анализ точности предсказаний.
+        
+        ### Примеры использования
+        **Примеры использования**: Прогнозирование движения цен акций, фьючерсов, валютных пар.
+        **Результаты**: Повышение точности торговых решений, улучшение управления рисками.
+        
+        ### Заключение
+        **Итоги**: Технический анализ должен предоставлять точные и обоснованные прогнозы направления движения цены, 
+        а также рекомендации по точке входа, тейк-профиту и стоп-лоссу.
+        """
+        "input: {...}",
+        "output: '1', 100, 105, 98",
+        "input: {...}",
+        "output: '-1', 100, 105, 98",
         f"input: {data2}",
         "output: ",
     ])
     data1 = json.loads(response.text)
-    print(data1)
     # Вывод результата
     return data1
 
@@ -84,44 +122,37 @@ def ema_trend(data):
     # Вычисление EMA для периодов 20, 50 и 200
     ema20 = calculate_ema(closes, 20)
     ema50 = calculate_ema(closes, 50)
-    ema200 = calculate_ema(closes, 200)
+    ema100 = calculate_ema(closes, 100)
 
     # Функция для определения результата
-    def determine_result(ema20, ema50, ema200):
-        if ema20 > ema50 > ema200:
+    def determine_result(ema20, ema50, ema100):
+        if ema20 > ema50 > ema100:
             return 1
-        elif ema20 < ema50 < ema200:
+        elif ema20 < ema50 < ema100:
             return -1
         else:
             return 0
 
     # Определение результата для последнего значения
-    result = determine_result(ema20[0], ema50[0], ema200[0])
+    result = determine_result(ema20[0], ema50[0], ema100[0])
 
     return result
 
 
 def print_and_save_to_file(data):
-    choice = ""
-    # Красивый вывод в консоль
-    print(f"Ticket: {data['ticket']}")
-    print(f"Time: {data['time']}")
-    print(f"Trend: {data['trend']}")
 
-
+    # Красивый вывод в файл
     if isinstance(data['response'], list) and len(data['response']) >= 4:
-        choice = f"limit: {data['response'][1]},\n tp: {data['response'][2]},\n sl: {data['response'][3]}"
+        choice = f"limit: {data['response'][1]}, tp: {data['response'][2]}, sl: {data['response'][3]}"
         difference = abs(float(data['response'][1]) - float(data['response'][2]))
         percentage_difference = (difference / abs(float(data['response'][1]))) * 100
-        print(choice)
-        print(f"Прибль: {percentage_difference}")
+        # Преобразование данных в строку для записи в файл
+        data_str = (f"Ticket: {data['ticket']} Time: {data['time']}, "
+                    f"Trend: {data['response'][0]},{choice} stonks: {percentage_difference}")
+        # Запись данных в файл
+        with open(r'C:\Users\maxim\Documents\PycharmProjects\ByBit_bot\Trade.txt', 'a', encoding='utf-8') as file:
+            file.write(data_str + '\n')
     else:
         choice = f"response: {data['response']}"
         print(choice)
 
-    # Преобразование данных в строку для записи в файл
-    data_str = f"Ticket: {data['ticket']}\nTime: {data['time']}\n{choice}\nTrend: {data['trend']}"
-
-    # Запись данных в файл
-    with open(r'C:\Users\maxim\Documents\PycharmProjects\ByBit_bot\Trade.txt', 'a', encoding='utf-8') as file:
-        file.write(data_str + '\n***********************************************************************************\n')
