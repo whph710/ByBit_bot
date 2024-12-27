@@ -1,5 +1,5 @@
 import google.generativeai as genai
-from config import API_KEY, API_KEY2, API_KEY3
+from config import API_KEY3
 from datetime import datetime
 import json
 
@@ -73,6 +73,9 @@ def trend_ai(data2):
         **Ограничения**: Ограничения по времени анализа и объему данных.
         **Требования**: Высокая точность прогноза, обоснованность выбора точки входа, тейк-профита и стоп-лосса.
         
+        ### Стиль торговли : агрессивный, для получения максимальной прибыли на 5 минутном ТФ, учитывай волантильность актива
+        и предварительный анализ свечных паттернов, ТОРГОВЛЯ ДОЛЖНА ПРОИСХОДИТЬ ОТ УРОВНЕЙ
+        
         ### Методы и подходы
         **Методы**: Использование индикаторов технического анализа, анализ свечных паттернов и фигур технического 
         анализа.
@@ -81,7 +84,7 @@ def trend_ai(data2):
         ### Выходные данные
         **Формат выходных данных**: Направление движения цены (1 для роста, -1 для падения, 0 для отсутствия движения), 
         три числа: точка входа, тейк-профит, стоп-лосс.
-        **Примеры выходных данных**: [ 1, 100, 110, 95]
+        **Примеры выходных данных**: [1, 100, 110, 95], [ -1, 100, 95, 102]
         
         ### Оценка и валидация
         **Метрики оценки**: Точность прогноза, обоснованность выбора точки входа, тейк-профита и стоп-лосса.
@@ -99,60 +102,127 @@ def trend_ai(data2):
         "output: '1', 100, 105, 98",
         "input: {...}",
         "output: '-1', 100, 105, 98",
+        # "input: {...}",
+        # "output: '0', 0, 0, 0",
         f"input: {data2}",
         "output: ",
     ])
     data1 = json.loads(response.text)
+    print(data1)
     # Вывод результата
     return data1
 
 
-def ema_trend(data):
-    # Извлечение значений закрытия
-    closes = [float(row[4]) for row in data]
+def calculate_trade_result(trade_info, candle_data):
+    # Разбираем trade_info
+    trend = int(trade_info[0])
+    entry_price = float(trade_info[1])
+    take_profit = float(trade_info[2])
+    stop_loss = float(trade_info[3])
 
-    # Функция для вычисления EMA
-    def calculate_ema(prices, period):
-        multiplier = 2 / (period + 1)
-        ema = [sum(prices[:period]) / period]
-        for price in prices[period:]:
-            ema.append((price - ema[-1]) * multiplier + ema[-1])
-        return ema
+    # Определяем направление сделки
+    if trend == 1:
+        direction = "long"
+    elif trend == -1:
+        direction = "short"
+    else:
+        direction = "neutral"
 
-    # Вычисление EMA для периодов 20, 50 и 200
-    ema20 = calculate_ema(closes, 20)
-    ema50 = calculate_ema(closes, 50)
-    ema100 = calculate_ema(closes, 100)
+    # Проверяем, достигла ли цена лимитной отметки
+    limit_reached = False
 
-    # Функция для определения результата
-    def determine_result(ema20, ema50, ema100):
-        if ema20 > ema50 > ema100:
-            return 1
-        elif ema20 < ema50 < ema100:
-            return -1
-        else:
-            return 0
+    for candle in candle_data:
+        high = float(candle[2])
+        low = float(candle[3])
 
-    # Определение результата для последнего значения
-    result = determine_result(ema20[0], ema50[0], ema100[0])
+        if direction == "long":
+            if low <= entry_price:
+                limit_reached = True
+                break
+        elif direction == "short":
+            if high >= entry_price:
+                limit_reached = True
+                break
+        elif direction == "neutral":
+            if high >= entry_price or low <= entry_price:
+                limit_reached = True
+                break
+
+    # Если лимитная отметка не достигнута, возвращаем результат
+    if not limit_reached:
+        return ["-", 0.0]
+
+    # Проверяем, отработала ли сделка
+    trade_successful = False
+    profit_percentage = 0.0
+
+    for candle in candle_data:
+        high = float(candle[2])
+        low = float(candle[3])
+
+        if direction == "long":
+            if high >= take_profit:
+                trade_successful = True
+                profit_percentage = (take_profit - entry_price) / entry_price * 100
+                break
+            elif low <= stop_loss:
+                trade_successful = False
+                profit_percentage = (stop_loss - entry_price) / entry_price * 100
+                break
+        elif direction == "short":
+            if low <= take_profit:
+                trade_successful = True
+                profit_percentage = (entry_price - take_profit) / entry_price * 100
+                break
+            elif high >= stop_loss:
+                trade_successful = False
+                profit_percentage = (entry_price - stop_loss) / entry_price * 100
+                break
+        elif direction == "neutral":
+            if high >= take_profit:
+                trade_successful = True
+                profit_percentage = (take_profit - entry_price) / entry_price * 100
+                break
+            elif low <= stop_loss:
+                trade_successful = False
+                profit_percentage = (stop_loss - entry_price) / entry_price * 100
+                break
+
+    # Формируем результат
+    result_sign = "+" if trade_successful else "-"
+    result = [result_sign, profit_percentage]
 
     return result
 
 
-def print_and_save_to_file(data):
 
-    # Красивый вывод в файл
-    if isinstance(data['response'], list) and len(data['response']) >= 4:
-        choice = f"limit: {data['response'][1]}, tp: {data['response'][2]}, sl: {data['response'][3]}"
-        difference = abs(float(data['response'][1]) - float(data['response'][2]))
-        percentage_difference = (difference / abs(float(data['response'][1]))) * 100
-        # Преобразование данных в строку для записи в файл
-        data_str = (f"Ticket: {data['ticket']} Time: {data['time']}, "
-                    f"Trend: {data['response'][0]},{choice} stonks: {percentage_difference}")
-        # Запись данных в файл
-        with open(r'C:\Users\maxim\Documents\PycharmProjects\ByBit_bot\Trade.txt', 'a', encoding='utf-8') as file:
-            file.write(data_str + '\n')
-    else:
-        choice = f"response: {data['response']}"
-        print(choice)
+import pandas as pd
+import numpy as np
+
+
+def analyze_candlestick_data_m5(data):
+    # Преобразование данных в DataFrame
+    columns = ['timestamp', 'open', 'high', 'low', 'close', 'volume', 'quote_volume']
+    df = pd.DataFrame(data, columns=columns)
+
+    # Преобразование строковых данных в числовые
+    df['timestamp'] = pd.to_datetime(df['timestamp'].astype(int), unit='ms')
+    df[['open', 'high', 'low', 'close', 'volume', 'quote_volume']] = df[['open', 'high', 'low', 'close', 'volume', 'quote_volume']].astype(float)
+
+    # Анализ уровней поддержки и сопротивления
+    support_levels = df['low'].rolling(window=20).min()  # Уровни поддержки за окно в 20 периодов
+    resistance_levels = df['high'].rolling(window=20).max()  # Уровни сопротивления за окно в 20 периодов
+
+    # Определение самых актуальных уровней
+    current_support_level = support_levels.dropna().iloc[-1]
+    current_resistance_level = resistance_levels.dropna().iloc[-1]
+
+    # Преобразование результатов в словарь
+    result = {
+        'support_level': current_support_level,
+        'resistance_level': current_resistance_level
+    }
+
+    return result
+
 
